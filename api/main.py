@@ -3,8 +3,11 @@ import os
 from openai import AzureOpenAI
 from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
+import uvicorn
 
 load_dotenv()
+
+# class Model(BaseModel)
 
 app = fastapi.FastAPI()
 
@@ -58,3 +61,6 @@ async def generate():
     )
 
     return StreamingResponse(response(client, deployment))
+
+if __name__ == "__main__":
+    uvicorn.run(app="__main__:app", host="localhost", port=8000, reload=True, workers=2)
