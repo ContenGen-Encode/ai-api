@@ -1,19 +1,10 @@
-import fastapi
 import os
 from openai import AzureOpenAI
-from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
-import uvicorn
 
 load_dotenv()
 
 # class Model(BaseModel)
-
-app = fastapi.FastAPI()
-
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
 
 def response(client, deployment):
     response = client.chat.completions.create(
@@ -36,12 +27,10 @@ def response(client, deployment):
 
     for update in response:
         if update.choices:
-            yield update.choices[0].delta.content or "" 
+            print(update.choices[0].delta.content or "")
     client.close()
 
-
-@app.get('/generate')
-async def generate():
+def generate():
     endpoint = "https://ai-sebimomir-3123.cognitiveservices.azure.com/"
     model_name = "gpt-4o-mini"
     deployment = "gpt-4o-mini"
@@ -60,7 +49,8 @@ async def generate():
         api_key=subscription_key,
     )
 
-    return StreamingResponse(response(client, deployment))
+    return print(response(client, deployment))
 
-if __name__ == "__main__":
-    uvicorn.run(app="__main__:app", host="localhost", port=8000, reload=True, workers=2)
+
+
+generate()
