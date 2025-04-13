@@ -1,4 +1,5 @@
 # import fastapi
+import json
 import os
 from dotenv import load_dotenv
 # import uvicorn
@@ -16,11 +17,34 @@ def file_stream(file):
     with open(file, "rb") as f:
         yield from f   
 
-async def generate(params, endpoint_url: str, token: str):
+def generate(params):
+    #get value of Name from paarams json obj
+    # name = 
+    params = json.loads(params)
+    token = params["AccessToken"]
     output_audio_path = "output.mp3"
+    fileName = params["FileName"]
     
     # Generate the script and TTS audio
-    script = scriptgen(params.prompt, params.tone)
+    if(fileName is not None and fileName != ""):
+        # Construct the endpoint URI
+        file_url = f"https://localhost:7234/storage/get-file?fileName={fileName}"
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+
+        # ignore SSL certificate warnings
+        requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
+
+        # Get the file stream
+        response = requests.get(file_url, headers=headers)
+        response.raise_for_status()  # Raise an error for bad responses
+
+        # Read the stream and decode as text
+        script = response.content.decode('utf-8')
+    else:
+        script = scriptgen(params.prompt, params.tone)
+
     output_audio_path = tts.tts(script.content, params.tone)
     subtitle = tts.transcribe(output_audio_path)
 
@@ -32,11 +56,17 @@ async def generate(params, endpoint_url: str, token: str):
         "Content-Type": "audio/mpeg"
     }
 
+    audioRes = ""
+    subRes = ""
+
     # Stream the file
     with open(output_audio_path, 'rb') as f:
-        response = requests.post(endpoint_url, headers=headers, data=f)
+        audioRes = requests.post("https://congen-api.ofneill.com/storage/save-file", headers=headers, data=f)
 
-    print("Response status:", response.status_code)
+    with open(subtitle, 'rb') as f:
+        subRes = requests.post("https://congen-api.ofneill.com/storage/save-file", headers=headers, data=f)
+
+    # print("Response status:", response.status_code)
     print("Response body:", response.text)
 
-    return response
+    return [audioRes, subRes]
