@@ -1,66 +1,46 @@
 import fastapi
 import os
-from openai import AzureOpenAI
+from openai import AzureOpenAI, BaseModel
 from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
 import uvicorn
-
+from scripttest import scriptgen
+import tts
+#from api.script import generate_system_prompt
+ 
 load_dotenv()
 
 # class Model(BaseModel)
 
 app = fastapi.FastAPI()
 
+
+# class GetScript(BaseModel):
+#     subtitles: str
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
-def response(client, deployment):
-    response = client.chat.completions.create(
-    stream=True,
-    messages=[
-        {
-            "role": "system",
-            "content": "You are a helpful assistant.",
-        },
-        {
-            "role": "user",
-            "content": "I am going to Paris, what should I see? in 15 words",
-        }
-    ],
-    max_tokens=800,
-    temperature=1.0,
-    top_p=1.0,
-    model=deployment,
-    )
 
-    for update in response:
-        if update.choices:
-            yield update.choices[0].delta.content or "" 
-    client.close()
+class GenParams(BaseModel):
+    prompt: str
+    tone: str
 
+def file_stream(file):
+    with open(file, "rb") as f:
+        yield from f   
 
-@app.get('/generate')
-async def generate():
-    endpoint = "https://ai-sebimomir-3123.cognitiveservices.azure.com/"
-    model_name = "gpt-4o-mini"
-    deployment = "gpt-4o-mini"
-
-    key = os.getenv("OPENAI_API_KEY")
-    # print(key)
-
-    subscription_key =key
-    #str(key)
+@app.post('/generate')
+async def generate(params: GenParams):
     
-    api_version = "2024-12-01-preview"
+    output_audio_path = "output.mp3"
+    script = scriptgen(params.prompt, params.tone)
+    output_audio_path = tts.tts(script.content , params.tone)
+    subtitle = tts.transcribe(output_audio_path)
 
-    client = AzureOpenAI(
-        api_version=api_version,
-        azure_endpoint=endpoint,
-        api_key=subscription_key,
-    )
-
-    return StreamingResponse(response(client, deployment))
+    print("Script:", script, subtitle)
+    return StreamingResponse(file_stream(output_audio_path), media_type="audio/mpeg")
 
 if __name__ == "__main__":
     uvicorn.run(app="__main__:app", host="localhost", port=8000, reload=True, workers=2)
