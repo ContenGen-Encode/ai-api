@@ -28,7 +28,7 @@ def generate(params):
     # Generate the script and TTS audio
     if(fileName is not None and fileName != ""):
         # Construct the endpoint URI
-        file_url = f"https://localhost:7234/storage/get-file?fileName={fileName}"
+        file_url = f"https://congen-api.ofneill.com/storage/get-file?fileName={fileName}"
         headers = {
             "Authorization": f"Bearer {token}"
         }
@@ -42,10 +42,11 @@ def generate(params):
 
         # Read the stream and decode as text
         script = response.content.decode('utf-8')
+        output_audio_path = tts.tts(script, params["Tone"])
     else:
-        script = scriptgen(params.prompt, params.tone)
+        script = scriptgen(params["Prompt"], params["Tone"])
+        output_audio_path = tts.tts(script.content, params["Tone"])
 
-    output_audio_path = tts.tts(script.content, params.tone)
     subtitle = tts.transcribe(output_audio_path)
 
     print("Script:", script, subtitle)

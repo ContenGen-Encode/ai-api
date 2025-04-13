@@ -8,14 +8,7 @@ RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
 QUEUE_NAME = os.getenv("RABBITMQ_QUEUE")
 
 def callback(ch, method, properties, body):
-    # Encode body to an object from a json string
-    # body = body.decode('utf-8')
-    # body = json.loads(body)
-    # body = json.loads(body.replace("'", "\""))
     jsonObj = json.loads(body)
-    # print(jsonObj.FileName)
-    # jsonObj = json.dumps(body, indent=4, sort_keys=True)
-
     print(f"Received message: {jsonObj}")
 
     caller.generate(jsonObj)
