@@ -71,7 +71,4 @@ def generate(params):
     with open(subtitle, 'rb') as f:
         subRes = requests.post(f"{API_URL}/storage/save-file", headers=headers, files={"file": f}, verify=VERIFY)
 
-    # print("Response status:", response.status_code)
-    print("Response body:", response.text)
-
     return [audioRes, subRes]

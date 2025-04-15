@@ -28,8 +28,8 @@ def scriptgen(prompt, tone):
     prompt_template = PromptTemplate(template=template)
 
     prompt = prompt_template.invoke({
-        "input":"Create a story about two people meeting in paris and finding out that there was a crime", 
-        "tone":"horror"
+        "input":prompt, 
+        "tone":tone
                                     })
 
     #chain = prompt | llm
