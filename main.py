@@ -17,11 +17,13 @@ def callback(ch, method, properties, body):
 
     # Publish message to the exchange
     message = {
-    "audio": res[0],
-    "subtitle": res[1]
+    "audio": json.loads(res[0].text)["fileName"],
+    "subtitle": json.loads(res[1].text)["fileName"]
     }
+
+    userId = json.loads(jsonObj)["UserId"]
     
-    publishMessage(json.dumps(message), jsonObj["UserId"])
+    publishMessage(json.dumps(message), userId)
 
 def main():
     # Connect to RabbitMQ server

@@ -19,7 +19,11 @@ def file_stream(file):
 
 def generate(params):
     #get value of Name from paarams json obj
-    # name = 
+    API_URL = os.getenv("API_URL")
+
+    VERIFY = API_URL.__contains__("https://localhost:")
+    VERIFY = False if VERIFY else True
+
     params = json.loads(params)
     token = params["AccessToken"]
     output_audio_path = "output.mp3"
@@ -54,7 +58,7 @@ def generate(params):
     # Prepare headers with Authorization token
     headers = {
         "Authorization": f"Bearer {token}",
-        "Content-Type": "audio/mpeg"
+        # "Content-Type": "multipart/form-data"
     }
 
     audioRes = ""
@@ -62,12 +66,9 @@ def generate(params):
 
     # Stream the file
     with open(output_audio_path, 'rb') as f:
-        audioRes = requests.post("https://congen-api.ofneill.com/storage/save-file", headers=headers, data=f)
+        audioRes = requests.post(f"{API_URL}/storage/save-file", headers=headers, files={"file": f}, verify=VERIFY)
 
     with open(subtitle, 'rb') as f:
-        subRes = requests.post("https://congen-api.ofneill.com/storage/save-file", headers=headers, data=f)
-
-    # print("Response status:", response.status_code)
-    print("Response body:", response.text)
+        subRes = requests.post(f"{API_URL}/storage/save-file", headers=headers, files={"file": f}, verify=VERIFY)
 
     return [audioRes, subRes]
