@@ -29,8 +29,7 @@ def tts(prompt,tone):
     response = clientTTS.audio.speech.create(
         model = "tts-hd",
         voice = "alloy",
-        input = prompt,
-        instruction = tone,
+        input = prompt
     )
 
     response.write_to_file(output_audio_path)
@@ -69,3 +68,5 @@ def transcribe(output_audio_path):
 
     with open("subtitles.srt", 'w', encoding='utf-8') as f:
         f.write(result)
+    
+    return "subtitles.srt"
