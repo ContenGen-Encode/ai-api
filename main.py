@@ -12,18 +12,28 @@ def callback(ch, method, properties, body):
     jsonObj = json.loads(body)
     print(f"Received message: {jsonObj}")
 
+    
+    userId = json.loads(jsonObj)["UserId"]
     #[audioRes, subRes] = caller.generate(jsonObj)
     res = caller.generate(jsonObj)
 
-    # Publish message to the exchange
-    message = {
-    "audio": json.loads(res[0].text)["fileName"],
-    "subtitle": json.loads(res[1].text)["fileName"]
-    }
-
-    userId = json.loads(jsonObj)["UserId"]
     
-    publishMessage(json.dumps(message), userId)
+    # Publish message to the exchange
+    if "error" in res:
+        message = {
+            "error": str(res["error"]),
+            "message": str(res["message"])
+        }
+        
+        publishMessage(json.dumps(message), userId)
+
+    else:
+        message = {
+            "audio": json.loads(res["audioRes"].text)["fileName"],
+            "subtitle": json.loads(res["subRes"].text)["fileName"]
+        }
+
+        publishMessage(json.dumps(message), userId)
 
 def main():
     # Connect to RabbitMQ server
@@ -58,14 +68,18 @@ def main():
 def publishMessage(body, userId):
     # Publish a message to the exchange
     channel.basic_publish(
-        exchange=EXCHANGE_NAME,
-        routing_key=userId,
-        body=body,
-        properties=pika.BasicProperties(
-            delivery_mode=2,
-        )
+        exchange     = EXCHANGE_NAME,
+        routing_key  = userId,
+        body         = body,
+        properties   = pika.BasicProperties(elivery_mode = 2,)
     )
 
     print(f" [x] Sent '{body}'")
 
 main()
+
+# Unit testing i think
+# if __name__ == "__main__":
+#     smth = json.dumps({"UserId": "1", "Prompt": "Write me a story", "Tone": "funny"})
+#     smth = json.dumps(smth)
+#     callback(None, None, None, smth)

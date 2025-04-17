@@ -1,5 +1,6 @@
 from langchain_openai import AzureChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
+from openai import OpenAIError
 from dotenv import load_dotenv
 load_dotenv()
 import os 
@@ -32,7 +33,17 @@ def scriptgen(prompt, tone):
         "tone":tone
                                     })
 
-    #chain = prompt | llm
-    
-    return llm.invoke(prompt)
+    #chain = prompt | llm | 
+   
+    try:
+        return llm.invoke(prompt)
+    except OpenAIError as ai_err:
+        ai_response_msg = ai_err.body["message"]
+        return {"message": ai_response_msg,
+                "error" : ai_err.body["error"]}
+
+if __name__ == "__main__": 
+    prompt = input("Enter prompt: ")
+    tone = input("Enter tone: ")
+    print(scriptgen(prompt, tone).content )
 
