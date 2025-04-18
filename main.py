@@ -17,8 +17,10 @@ def callback(ch, method, properties, body):
 
     # Publish message to the exchange
     message = {
-    "audio": json.loads(res[0].text)["fileName"],
-    "subtitle": json.loads(res[1].text)["fileName"]
+    "voice": json.loads(res[0].text)["fileName"],
+    "subtitle": json.loads(res[1].text)["fileName"],
+    "audio": json.loads(jsonObj)["AudioName"],
+    "video": json.loads(jsonObj)["VideoName"]
     }
 
     userId = json.loads(jsonObj)["UserId"]
