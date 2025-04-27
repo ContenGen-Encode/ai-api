@@ -74,14 +74,18 @@ def generate(params):
         with open(subtitle, 'rb') as f:
             subRes = requests.post(f"{API_URL}/storage/save-file", headers=headers, files={"file": f}, verify=VERIFY)
 
+        # Prepare the request body
         project_res_body = {
             "id" : params["ProjectId"],
             "tts" : audioRes.json()["fileName"],
             "captions" : subRes.json()["fileName"],
-        }
+            "successful" : True
+        }   
+        
 
         project_response = requests.patch(f"{API_URL}/projects/{params['ProjectId']}", headers=headers, json=project_res_body, verify=VERIFY)
 
+        # Return the response
         return {
             "projectId" : params["ProjectId"],
             "projectReponse" : project_response,
