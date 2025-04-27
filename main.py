@@ -29,8 +29,7 @@ def callback(ch, method, properties, body):
 
     else:
         message = {
-            "audio": json.loads(res["audioRes"].text)["fileName"],
-            "subtitle": json.loads(res["subRes"].text)["fileName"]
+            "id": json.loads(res["projectResponse"].text)["projectId"],    
         }
 
         publishMessage(json.dumps(message), userId)
