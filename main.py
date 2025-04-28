@@ -2,37 +2,47 @@ import os
 import pika
 import caller
 import json
-
+from dotenv import load_dotenv
+load_dotenv()
 # Connection parameters
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
 QUEUE_NAME = os.getenv("RABBITMQ_QUEUE")
 EXCHANGE_NAME = os.getenv("RABBITMQ_EXCHANGE")
 
 def callback(ch, method, properties, body):
-    jsonObj = json.loads(body)
-    print(f"Received message: {jsonObj}")
+    userId = ""
+    try: 
+        jsonObj = json.loads(body)
+        print(f"\n\nReceived message: {json.loads(jsonObj)['ProjectId']}")
 
-    
-    userId = json.loads(jsonObj)["UserId"]
-    #[audioRes, subRes] = caller.generate(jsonObj)
-    res = caller.generate(jsonObj)
-
-    
-    # Publish message to the exchange
-    if "error" in res:
-        message = {
-            "error": str(res["error"]),
-            "message": str(res["message"])
-        }
         
-        publishMessage(json.dumps(message), userId)
+        userId = json.loads(jsonObj)["UserId"]
+        #[audioRes, subRes] = caller.generate(jsonObj)
+        res = caller.generate(jsonObj)
+        
+        # Publish message to the exchange
+        if "error" in res:
+            message = {
+                "error": str(res["error"]),
+                "message": str(res["message"])
+            }
+            
+            publishMessage(json.dumps(message), userId)
 
-    else:
-        message = {
-            "id": json.loads(res["projectResponse"].text)["projectId"],    
-        }
+        else:
+            res_dict = json.loads(res["response"].text)
+            message = {
+                "id": res_dict["projectId"],    
+            }
 
-        publishMessage(json.dumps(message), userId)
+            publishMessage(json.dumps(message), userId)
+    except Exception as e:
+        print(e)
+        publishMessage(json.dumps({
+            "error": "something wong",
+            "message": "this is unexpected"
+        }), userId)
+
 
 def main():
     # Connect to RabbitMQ server
@@ -70,7 +80,7 @@ def publishMessage(body, userId):
         exchange     = EXCHANGE_NAME,
         routing_key  = userId,
         body         = body,
-        properties   = pika.BasicProperties(elivery_mode = 2,)
+        properties   = pika.BasicProperties(delivery_mode = 2,)
     )
 
     print(f" [x] Sent '{body}'")

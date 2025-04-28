@@ -1,13 +1,77 @@
 1
-00:00:00,000 --> 00:00:04,720
-Analysis. Breaks up signal into separate parts, e.g. separates bass and mid.
+00:00:00,000 --> 00:00:04,960
+A young Polish man boards a train, his eyes filled with curiosity and excitement.
 
 2
-00:00:04,720 --> 00:00:08,160
-Synthesis. Combines separate parts, bass plus mid-song.
+00:00:04,960 --> 00:00:10,720
+He's always dreamed of visiting Paris, the city of art, history, and endless charm.
 
 3
-00:00:08,160 --> 00:00:15,600
-htpodcast.apple.com's U.S. podcast, The Fourier Transforms and its Applications, ID 3842-32849.
+00:00:10,720 --> 00:00:15,840
+As the train speeds through fields and hills, he gazes out the window, imagining the Eiffel
+
+4
+00:00:15,840 --> 00:00:18,080
+Tower glittering at night.
+
+5
+00:00:18,080 --> 00:00:23,400
+Arriving in Paris, he's met with a symphony of bustling streets, distant accordion melodies,
+
+6
+00:00:23,400 --> 00:00:25,980
+and the aroma of freshly baked pastries.
+
+7
+00:00:25,980 --> 00:00:30,820
+He walks through cobblestone alleys, marveling at the intricate details of centuries-old
+
+8
+00:00:30,820 --> 00:00:32,240
+architecture.
+
+9
+00:00:32,240 --> 00:00:37,220
+With a map in hand and a small backpack slung over his shoulder, he explores the Louvre,
+
+10
+00:00:37,220 --> 00:00:40,500
+captivated by masterpieces he's only seen in books.
+
+11
+00:00:40,500 --> 00:00:46,480
+By evening, he stands before the Eiffel Tower as lights flicker on, illuminating the city.
+
+12
+00:00:46,480 --> 00:00:48,580
+The moment feels surreal.
+
+13
+00:00:48,580 --> 00:00:53,299
+He buys a crepe from a nearby vendor and sits by the Seine, reflecting on the journey that
+
+14
+00:00:53,299 --> 00:00:55,180
+brought him here.
+
+15
+00:00:55,419 --> 00:00:59,259
+Paris is everything he imagined, but also so much more.
+
+16
+00:00:59,259 --> 00:01:04,379
+Before returning home, he takes one last stroll, promising himself this won't be his only
+
+17
+00:01:04,379 --> 00:01:05,660
+visit.
+
+18
+00:01:05,660 --> 00:01:09,860
+Paris has left a mark on his heart, a reminder of the beauty that exists when you embrace
+
+19
+00:01:09,860 --> 00:01:12,220
+adventure and step out of your comfort zone.
 
 

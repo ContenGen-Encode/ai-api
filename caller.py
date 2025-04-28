@@ -56,7 +56,7 @@ def generate(params):
              
         subtitle = tts.transcribe(output_audio_path)
 
-        print("Script:", script, subtitle)
+        # print("Script:", script, subtitle)
 
         # Prepare headers with Authorization token
         headers = {
@@ -73,22 +73,26 @@ def generate(params):
 
         with open(subtitle, 'rb') as f:
             subRes = requests.post(f"{API_URL}/storage/save-file", headers=headers, files={"file": f}, verify=VERIFY)
+        
 
         # Prepare the request body
         project_res_body = {
             "id" : params["ProjectId"],
-            "tts" : audioRes.json()["fileName"],
-            "captions" : subRes.json()["fileName"],
+            "ttsUrl" : audioRes.json()["fileName"],
+            "captionsUrl" : subRes.json()["fileName"],
             "successful" : True
         }   
-        
 
-        project_response = requests.patch(f"{API_URL}/projects/{params['ProjectId']}", headers=headers, json=project_res_body, verify=VERIFY)
+
+        # change to prod url when deployed
+        # url = f"http://localhost:5032/projects"
+        url = f"{API_URL}/projects"
+        
+        project_response = requests.put(url, headers=headers, json=project_res_body)
 
         # Return the response
         return {
-            "projectId" : params["ProjectId"],
-            "projectReponse" : project_response,
+            "response" : project_response,
         }
         
 
