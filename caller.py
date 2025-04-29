@@ -85,8 +85,8 @@ def generate(params):
 
 
         # change to prod url when deployed
-        # url = f"http://localhost:5032/projects"
-        url = f"{API_URL}/projects"
+        # url = f"http://localhost:5032/project/update-project"
+        url = f"{API_URL}/project/update-project"
         
         project_response = requests.put(url, headers=headers, json=project_res_body)
 
