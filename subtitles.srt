@@ -1,4 +1,5 @@
 1
+<<<<<<< Updated upstream
 00:00:00,000 --> 00:00:04,720
 A dimly lit bedroom, the camera slowly pans across a desk cluttered with books and an
 
@@ -93,5 +94,57 @@ I've been waiting.
 24
 00:01:12,339 --> 00:01:13,459
 Scene fades to black.
+=======
+00:00:00,000 --> 00:00:04,160
+Deep in the snowy wilderness, far from the reach of human civilization,
+
+2
+00:00:04,160 --> 00:00:08,560
+the legend of the Yeti comes alive. Known as the Abominable Snowman,
+
+3
+00:00:09,120 --> 00:00:14,240
+this mysterious creature has been whispered about for centuries, captivating the imagination of
+
+4
+00:00:14,240 --> 00:00:19,920
+adventurers and storytellers alike. Standing tall, covered in thick white fur to weather
+
+5
+00:00:19,920 --> 00:00:26,000
+the harshest conditions, the Yeti blends effortlessly into the icy terrain. Its footprints,
+
+6
+00:00:26,000 --> 00:00:31,600
+massive and traced through the snow, are the only evidence left behind. Stories tell of its
+
+7
+00:00:31,600 --> 00:00:37,360
+piercing gaze, a glimpse of wisdom and solitude, watching from the shadows as travelers pass
+
+8
+00:00:37,360 --> 00:00:42,400
+through its domain. Some say it's a guardian of the mountains, a protector of nature,
+
+9
+00:00:42,400 --> 00:00:47,360
+keeping the balance in a world untouched by humanity's chaos. Others believe it's merely
+
+10
+00:00:47,360 --> 00:00:53,919
+a myth, an echo of the human desire to uncover the unknown. But what if it's real? What if the
+
+11
+00:00:53,919 --> 00:01:00,160
+Yeti exists in the silence of the peaks, peaceful and undisrupted, carrying the secrets of a world
+
+12
+00:01:00,160 --> 00:01:06,000
+we'll never fully understand? Whether fact or folklore, it reminds us of the magic of nature,
+
+13
+00:01:06,000 --> 00:01:09,919
+of mysteries that dare us to wonder, to explore, and to dream.
+>>>>>>> Stashed changes
 
 

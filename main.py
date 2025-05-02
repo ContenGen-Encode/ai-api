@@ -1,4 +1,6 @@
+import asyncio
 import os
+import aio_pika
 import pika
 import caller
 import json
@@ -13,143 +15,81 @@ RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
 QUEUE_NAME = os.getenv("RABBITMQ_QUEUE")
 EXCHANGE_NAME = os.getenv("RABBITMQ_EXCHANGE")
 
-def callback(ch, method, properties, body):
-    userId = ""
-    try: 
-        jsonObj = json.loads(body)
-        print(f"\n\nReceived message: {json.loads(jsonObj)['ProjectId']}")
+async def callback(ch, message):
+    async with message.process():
+        userId = ""
+        try: 
+            jsonObj = json.loads(message.body)
+            print(f"\n\nReceived message: {json.loads(jsonObj)['ProjectId']}")
 
-        
-        userId = json.loads(jsonObj)["UserId"]
-        #[audioRes, subRes] = caller.generate(jsonObj)
-        res = caller.generate(jsonObj)
-        
-        # Publish message to the exchange
-        if "error" in res:
-            message = {
-                "error": str(res["error"]),
-                "message": str(res["message"])
-            }
             
-            publishMessage(json.dumps(message), userId)
-
-        else:
-            res_dict = json.loads(res["response"].text)
-            message = {
-                "id": res_dict["projectId"],    
-            }
-
-            publishMessage(json.dumps(message), userId)
-    except Exception as e:
-        print(e)
-        publishMessage(json.dumps({
-            "error": "something wong",
-            "message": "this is unexpected"
-        }), userId)
-
-
-# async def consume():
-#     # Connect to RabbitMQ server
-#     global channel
-
-#     try:
-#         connection = pika.BlockingConnection(
-#             pika.ConnectionParameters(
-#                 host=RABBITMQ_HOST,
-#                 credentials=pika.PlainCredentials(
-#                     os.getenv("RABBITMQ_USER"),
-#                     os.getenv("RABBITMQ_PASS")
-#                 )
-#             )
-#         )
-#     except Exception as e:
-#         print("Failed to connect to reabbitmq")
-#         return asyncio.create_task(asyncio.sleep(5))
-
-#     channel = connection.channel()
-
-#     # Make sure the queue exists
-#     channel.queue_declare(queue=QUEUE_NAME, durable=True)
-
-#     # Make sure the exchange exists
-#     channel.exchange_declare(exchange=EXCHANGE_NAME, exchange_type='topic', durable=True)
-
-#     # Subscribe to the queue
-#     channel.basic_consume(
-#         queue=QUEUE_NAME,
-#         on_message_callback=callback,
-#         auto_ack=True  # Change to False if you want to manually ack after processing
-#     )
-    
-#     print(f"[*] Waiting for messages in {QUEUE_NAME}...")
-
-#     try:
-#         await channel.start_consuming()
-#     except KeyboardInterrupt:
-#         await channel.stop_consuming()
-#     finally:
-#         print("[*] Stopping consumption...")
-#         await connection.close()
-
-async def consume():
-    while True:
-        try:
-            connection = await aio_pika.connect_robust(
-                host=RABBITMQ_HOST,
-                login=os.getenv("RABBITMQ_USER"),
-                password=os.getenv("RABBITMQ_PASS"),
-                timeout=30,
-                client_properties={"connection_name": "my_consumer"}
-            )
+            userId = json.loads(jsonObj)["UserId"]
+            #[audioRes, subRes] = caller.generate(jsonObj)
+            res =  await caller.generate(jsonObj)
             
-            async with connection:
-                channel = await connection.channel()
-                await channel.set_qos(prefetch_count=1)
+            # Publish message to the exchange
+            if "error" in res:
+                message = {
+                    "error": str(res["error"]),
+                    "message": str(res["message"])
+                }
                 
-                exchange = await channel.declare_exchange(
-                    EXCHANGE_NAME,
-                    aio_pika.ExchangeType.TOPIC,
-                    durable=True
-                )
-                
-                queue = await channel.declare_queue(QUEUE_NAME, durable=True)
-                await queue.bind(exchange, routing_key="#")
-                
-                print(f"[*] Waiting for messages in {QUEUE_NAME}...")
-                await queue.consume(callback)
-                
-                await asyncio.Future()  # Run forever
+                await publishMessage(ch, bytes(json.dumps(message), encoding="utf8"), userId)
 
-        except KeyboardInterrupt:
-            break
+            else:
+                res_dict = json.loads(res["response"].text)
+                message = {
+                    "id": res_dict["projectId"],    
+                }
+
+                await publishMessage(ch, bytes(json.dumps(message), encoding="utf8"), userId)
         except Exception as e:
-            print(f"Connection error: {str(e)}")
-            print("Retrying in 5 seconds...")
-            await asyncio.sleep(5)
+            print(e)
+            await publishMessage(ch, bytes(json.dumps({
+                "error": "something wong",
+                "message": "this is unexpected"
+            }), encoding="utf8"), userId)
 
 
 
-def main(): 
-    if sys.platform == 'win32':
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    asyncio.run(consume())
+async def main(loop):
+    # Connect to RabbitMQ servera
+    user = os.getenv("RABBITMQ_USER")
+    pwd = os.getenv("RABBITMQ_PASS") 
+    connectionString = f"amqp://{user}:{pwd}@{RABBITMQ_HOST}/"
+    connection: aio_pika.RobustConnection = await aio_pika.connect_robust(connectionString,loop=loop)
+
+    async with connection:
+        channel: aio_pika.abc.AbstractChannel = await connection.channel()
+
+        exchange = await channel.declare_exchange(EXCHANGE_NAME, auto_delete=False, type="topic", durable=True)
+
+        queue = await channel.declare_queue(QUEUE_NAME, auto_delete=False, durable=True)
+
+        print(f"[*] Waiting for messages in {QUEUE_NAME}...") 
+        async with queue.iterator() as queue_iter:
+            async for message in queue_iter:
+                asyncio.create_task(callback(channel, message))
+
         
+    print("[*] Stopping consumption...")
 
-def publishMessage(body, userId):
+
+async def publishMessage(ch: aio_pika.abc.AbstractChannel, body, userId):
     # Publish a message to the exchange
-    channel.basic_publish(
-        exchange     = EXCHANGE_NAME,
+
+    await ch.default_exchange.publish(
         routing_key  = userId,
-        body         = body,
-        properties   = pika.BasicProperties(delivery_mode = 2,)
+        message      = aio_pika.Message(
+            body=body
+        ),
+        # properties   = pika.BasicProperties(delivery_mode = 2,)
     )
 
     print(f" [x] Sent '{body}'")
 
-main()
-
-#Unit testing i think
-# if __name__ == "__main__":
-#     smth = json.dumps({"UserId": "1", "Prompt": "Write me a story", "Tone": "funny"})
-#     smth = json.dumps(smth)
-#     callback(None, None, None, smth)
+# Unit testing i think
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main(loop=loop))
+    loop.close()

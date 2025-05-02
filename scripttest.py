@@ -10,7 +10,7 @@ import getpass
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://ai-sebimomir-3123.cognitiveservices.azure.com/"
 
-def scriptgen(prompt, tone):
+async def scriptgen(prompt, tone):
     llm = AzureChatOpenAI(
     azure_deployment="gpt-4o",  # or your deployment
     api_version = "2024-12-01-preview"
@@ -28,7 +28,7 @@ def scriptgen(prompt, tone):
 
     prompt_template = PromptTemplate(template=template)
 
-    prompt = prompt_template.invoke({
+    prompt = await prompt_template.ainvoke({
         "input":prompt, 
         "tone":tone
                                     })
@@ -36,7 +36,7 @@ def scriptgen(prompt, tone):
     #chain = prompt | llm | 
    
     try:
-        return llm.invoke(prompt)
+        return await llm.ainvoke(prompt)
     except OpenAIError as ai_err:
         ai_response_msg = ai_err.body["message"]
         return {"message": ai_response_msg,

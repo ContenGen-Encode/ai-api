@@ -17,7 +17,7 @@ def file_stream(file):
     with open(file, "rb") as f:
         yield from f   
 
-def generate(params):
+async def generate(params):
     try:
         #get value of Name from paarams json obj
         API_URL = os.getenv("API_URL")
@@ -49,7 +49,7 @@ def generate(params):
             script = response.content.decode('utf-8')
             output_audio_path = tts.tts(script, params["Tone"])
         else:
-            script = scriptgen(params["Prompt"], params["Tone"])
+            script = await scriptgen(params["Prompt"], params["Tone"])
             if "error" in script:
                 raise Exception(script["error"])
             output_audio_path = tts.tts(script.content, params["Tone"])
@@ -85,8 +85,8 @@ def generate(params):
 
 
         # change to prod url when deployed
-        # url = f"http://localhost:5032/project/update-project"
-        url = f"{API_URL}/project/update-project"
+        url = f"http://localhost:5032/project/update-project"
+        # url = f"{API_URL}/project/update-project"
         
         project_response = requests.put(url, headers=headers, json=project_res_body)
 
