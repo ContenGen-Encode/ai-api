@@ -3,7 +3,7 @@ import json
 import os
 from dotenv import load_dotenv
 # import uvicorn
-from scripttest import scriptgen
+from scripttest import scriptgen, transcribe
 import tts
 import requests
 #from api.script import generate_system_prompt
@@ -54,7 +54,7 @@ async def generate(params):
                 raise Exception(script["error"])
             output_audio_path = tts.tts(script.content, params["Tone"])
              
-        subtitle = tts.transcribe(output_audio_path)
+        subtitle = transcribe(output_audio_path)
 
         # print("Script:", script, subtitle)
 
