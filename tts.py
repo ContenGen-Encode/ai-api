@@ -41,7 +41,7 @@ async def tts(prompt,tone):
     return output_audio_path
 
 
-def transcribe(output_audio_path):
+async def transcribe(output_audio_path):
     """
     Transcribe an audio file using the Whisper model from OpenAI.
 
@@ -54,13 +54,13 @@ def transcribe(output_audio_path):
     """
     key = os.getenv("OPENAI_API_KEY")
 
-    clientSUB = AzureOpenAI(
+    clientSUB = await AsyncAzureOpenAI(
         api_version="2024-12-01-preview",
         azure_endpoint="https://ai-sebimomir-3123.cognitiveservices.azure.com/",
         api_key=key,
     )
 
-    result = clientSUB.audio.transcriptions.create(
+    result = await clientSUB.audio.transcriptions.create(
 
         file=open(output_audio_path, "rb"),            
         model="whisper",
