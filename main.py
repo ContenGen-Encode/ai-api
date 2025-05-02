@@ -2,6 +2,10 @@ import os
 import pika
 import caller
 import json
+import threading
+import asyncio
+import sys
+import aio_pika
 from dotenv import load_dotenv
 load_dotenv()
 # Connection parameters
@@ -44,35 +48,92 @@ def callback(ch, method, properties, body):
         }), userId)
 
 
-def main():
-    # Connect to RabbitMQ server
-    global channel
+# async def consume():
+#     # Connect to RabbitMQ server
+#     global channel
 
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST, credentials=pika.PlainCredentials(os.getenv("RABBITMQ_USER"), os.getenv("RABBITMQ_PASS"))))
-    channel = connection.channel()
+#     try:
+#         connection = pika.BlockingConnection(
+#             pika.ConnectionParameters(
+#                 host=RABBITMQ_HOST,
+#                 credentials=pika.PlainCredentials(
+#                     os.getenv("RABBITMQ_USER"),
+#                     os.getenv("RABBITMQ_PASS")
+#                 )
+#             )
+#         )
+#     except Exception as e:
+#         print("Failed to connect to reabbitmq")
+#         return asyncio.create_task(asyncio.sleep(5))
 
-    # Make sure the queue exists
-    channel.queue_declare(queue=QUEUE_NAME, durable=True)
+#     channel = connection.channel()
 
-    # Make sure the exchange exists
-    channel.exchange_declare(exchange=EXCHANGE_NAME, exchange_type='topic', durable=True)
+#     # Make sure the queue exists
+#     channel.queue_declare(queue=QUEUE_NAME, durable=True)
 
-    # Subscribe to the queue
-    channel.basic_consume(
-        queue=QUEUE_NAME,
-        on_message_callback=callback,
-        auto_ack=True  # Change to False if you want to manually ack after processing
-    )
+#     # Make sure the exchange exists
+#     channel.exchange_declare(exchange=EXCHANGE_NAME, exchange_type='topic', durable=True)
 
-    print(f"[*] Waiting for messages in {QUEUE_NAME}...")
-    try:
-        channel.start_consuming()
-    except KeyboardInterrupt:
-        channel.stop_consuming()
-    finally:
-        print("[*] Stopping consumption...")
-        connection.close()
+#     # Subscribe to the queue
+#     channel.basic_consume(
+#         queue=QUEUE_NAME,
+#         on_message_callback=callback,
+#         auto_ack=True  # Change to False if you want to manually ack after processing
+#     )
+    
+#     print(f"[*] Waiting for messages in {QUEUE_NAME}...")
 
+#     try:
+#         await channel.start_consuming()
+#     except KeyboardInterrupt:
+#         await channel.stop_consuming()
+#     finally:
+#         print("[*] Stopping consumption...")
+#         await connection.close()
+
+async def consume():
+    while True:
+        try:
+            connection = await aio_pika.connect_robust(
+                host=RABBITMQ_HOST,
+                login=os.getenv("RABBITMQ_USER"),
+                password=os.getenv("RABBITMQ_PASS"),
+                timeout=30,
+                client_properties={"connection_name": "my_consumer"}
+            )
+            
+            async with connection:
+                channel = await connection.channel()
+                await channel.set_qos(prefetch_count=1)
+                
+                exchange = await channel.declare_exchange(
+                    EXCHANGE_NAME,
+                    aio_pika.ExchangeType.TOPIC,
+                    durable=True
+                )
+                
+                queue = await channel.declare_queue(QUEUE_NAME, durable=True)
+                await queue.bind(exchange, routing_key="#")
+                
+                print(f"[*] Waiting for messages in {QUEUE_NAME}...")
+                await queue.consume(callback)
+                
+                await asyncio.Future()  # Run forever
+
+        except KeyboardInterrupt:
+            break
+        except Exception as e:
+            print(f"Connection error: {str(e)}")
+            print("Retrying in 5 seconds...")
+            await asyncio.sleep(5)
+
+
+
+def main(): 
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    asyncio.run(consume())
+        
 
 def publishMessage(body, userId):
     # Publish a message to the exchange
@@ -87,7 +148,7 @@ def publishMessage(body, userId):
 
 main()
 
-# Unit testing i think
+#Unit testing i think
 # if __name__ == "__main__":
 #     smth = json.dumps({"UserId": "1", "Prompt": "Write me a story", "Tone": "funny"})
 #     smth = json.dumps(smth)

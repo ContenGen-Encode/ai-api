@@ -1,77 +1,97 @@
 1
-00:00:00,000 --> 00:00:04,960
-A young Polish man boards a train, his eyes filled with curiosity and excitement.
+00:00:00,000 --> 00:00:04,720
+A dimly lit bedroom, the camera slowly pans across a desk cluttered with books and an
 
 2
-00:00:04,960 --> 00:00:10,720
-He's always dreamed of visiting Paris, the city of art, history, and endless charm.
+00:00:04,720 --> 00:00:07,100
+old clock ticking faintly.
 
 3
-00:00:10,720 --> 00:00:15,840
-As the train speeds through fields and hills, he gazes out the window, imagining the Eiffel
+00:00:07,100 --> 00:00:12,420
+She moved into the house just last week, charmed by its vintage feel and quiet neighborhood.
 
 4
-00:00:15,840 --> 00:00:18,080
-Tower glittering at night.
+00:00:12,420 --> 00:00:18,620
+But every night, at exactly 2.47am, she woke up to the sound of faint knocking.
 
 5
-00:00:18,080 --> 00:00:23,400
-Arriving in Paris, he's met with a symphony of bustling streets, distant accordion melodies,
+00:00:18,620 --> 00:00:20,860
+Three slow, deliberate taps.
 
 6
-00:00:23,400 --> 00:00:25,980
-and the aroma of freshly baked pastries.
+00:00:20,860 --> 00:00:23,719
+It always came from the wall behind her headboard.
 
 7
-00:00:25,980 --> 00:00:30,820
-He walks through cobblestone alleys, marveling at the intricate details of centuries-old
+00:00:23,719 --> 00:00:28,139
+At first, she chalked it up to the house settling or pipes creaking.
 
 8
-00:00:30,820 --> 00:00:32,240
-architecture.
+00:00:28,139 --> 00:00:31,299
+She even tried shoving her bed closer to the middle of the room.
 
 9
-00:00:32,240 --> 00:00:37,220
-With a map in hand and a small backpack slung over his shoulder, he explores the Louvre,
+00:00:31,299 --> 00:00:32,779
+But nothing stopped it.
 
 10
-00:00:37,220 --> 00:00:40,500
-captivated by masterpieces he's only seen in books.
+00:00:32,779 --> 00:00:36,459
+Last night, determined to find the source, she stayed awake.
 
 11
-00:00:40,500 --> 00:00:46,480
-By evening, he stands before the Eiffel Tower as lights flicker on, illuminating the city.
+00:00:36,459 --> 00:00:39,779
+Her phone's clock blinked 2.46am.
 
 12
-00:00:46,480 --> 00:00:48,580
-The moment feels surreal.
+00:00:39,779 --> 00:00:41,419
+Silence pressed in around her.
 
 13
-00:00:48,580 --> 00:00:53,299
-He buys a crepe from a nearby vendor and sits by the Seine, reflecting on the journey that
+00:00:41,419 --> 00:00:44,740
+Then, as the minute turned, the knocking began.
 
 14
-00:00:53,299 --> 00:00:55,180
-brought him here.
+00:00:44,740 --> 00:00:47,820
+She pressed her ear to the wall, her heart pounding.
 
 15
-00:00:55,419 --> 00:00:59,259
-Paris is everything he imagined, but also so much more.
+00:00:47,820 --> 00:00:49,060
+That's when she heard it.
 
 16
-00:00:59,259 --> 00:01:04,379
-Before returning home, he takes one last stroll, promising himself this won't be his only
+00:00:49,060 --> 00:00:52,740
+A voice, muffled and strained, whispering her name.
 
 17
-00:01:04,379 --> 00:01:05,660
-visit.
+00:00:52,740 --> 00:00:54,400
+It came from inside the wall.
 
 18
-00:01:05,660 --> 00:01:09,860
-Paris has left a mark on his heart, a reminder of the beauty that exists when you embrace
+00:00:54,400 --> 00:00:55,540
+She didn't sleep.
 
 19
-00:01:09,860 --> 00:01:12,220
-adventure and step out of your comfort zone.
+00:00:55,540 --> 00:00:58,779
+This morning, she called a contractor to inspect it.
+
+20
+00:00:58,779 --> 00:01:01,580
+He pulled back the paneling, revealing a hollow space.
+
+21
+00:01:01,580 --> 00:01:07,419
+Inside, they found an old, dust-covered photograph of a woman who looked just like her.
+
+22
+00:01:07,419 --> 00:01:10,339
+On the back, scrawled in shaky handwriting, were the words,
+
+23
+00:01:10,339 --> 00:01:12,339
+I've been waiting.
+
+24
+00:01:12,339 --> 00:01:13,459
+Scene fades to black.
 
 
