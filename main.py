@@ -1,11 +1,9 @@
 import asyncio
 import os
-import aio_pika
 import pika
 import caller
 import json
 import threading
-import asyncio
 import sys
 import aio_pika
 from dotenv import load_dotenv

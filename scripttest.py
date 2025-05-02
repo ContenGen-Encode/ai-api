@@ -1,20 +1,34 @@
 from langchain_openai import AzureChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
-from openai import OpenAIError
+from openai import OpenAIError, AsyncAzureOpenAI
 from dotenv import load_dotenv
 load_dotenv()
 import os 
-
 import getpass
 
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-os.environ["AZURE_OPENAI_ENDPOINT"] = "https://ai-sebimomir-3123.cognitiveservices.azure.com/"
+# os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
+# os.environ["AZURE_OPENAI_ENDPOINT"] = "https://ai-sebimomir-3123.cognitiveservices.azure.com/"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+AZURE_ENDPOINT_GPT = os.getenv("AZURE_ENDPOINT_GPT")
 
 async def scriptgen(prompt, tone):
+    """
+    Generate a script with a story for a popular instagram reel with subtitles and Narrates it
+    using the Azure Chat OpenAI model.
+
+    Parameters:
+        prompt (str): Prompt to generate a script for
+        tone (str): The tone of the script to generate
+
+    Returns:
+        dict: A dictionary with the generated script and the tone of the script
+              or an error message and the error code
+    """
     llm = AzureChatOpenAI(
     azure_deployment="gpt-4o",  # or your deployment
-    api_version = "2024-12-01-preview"
-,  # or your api version
+    api_version = "2024-12-01-preview",
+    azure_endpoint=AZURE_ENDPOINT_GPT,
+    api_key=OPENAI_API_KEY,
     temperature=0.9,
     max_tokens=2000,
     timeout=None,
@@ -41,6 +55,37 @@ async def scriptgen(prompt, tone):
         ai_response_msg = ai_err.body["message"]
         return {"message": ai_response_msg,
                 "error" : ai_err.body["error"]}
+
+async def transcribe(output_audio_path):
+    """
+    Transcribe an audio file using the Whisper model from OpenAI.
+
+    Given a path to an audio file, this function will transcribe it using the Whisper model
+    from OpenAI and save the transcription to a file named "subtitles.srt" in the same
+    directory.
+
+    Args:
+        output_audio_path: str, the path to the audio file to transcribe
+    """
+   
+
+    clientSUB = await AsyncAzureOpenAI(
+        api_version="2024-12-01-preview",
+        azure_endpoint=AZURE_ENDPOINT_GPT,
+        api_key=OPENAI_API_KEY,
+    )
+
+    result = await clientSUB.audio.transcriptions.create(
+
+        file=open(output_audio_path, "rb"),            
+        model="whisper",
+        response_format="srt"
+    )
+
+    with open("subtitles.srt", 'w', encoding='utf-8') as f:
+        f.write(result)
+    
+    return "subtitles.srt"
 
 if __name__ == "__main__": 
     prompt = input("Enter prompt: ")
