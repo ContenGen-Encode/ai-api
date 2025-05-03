@@ -1,21 +1,24 @@
 # import fastapi
 import json
 import os
+import aiofiles
 from dotenv import load_dotenv
 # import uvicorn
 from scripttest import scriptgen, transcribe
 import tts
 import requests
+import aiohttp
+
+from utils.file_lib import delete_file
 #from api.script import generate_system_prompt
  
 load_dotenv()
 
 # class Model(BaseModel)
 
+FILE_DIR=os.getenv("FILE_DIR")
 
-def file_stream(file):
-    with open(file, "rb") as f:
-        yield from f   
+
 
 async def generate(params):
     try:
@@ -29,9 +32,11 @@ async def generate(params):
         token = params["AccessToken"]
         output_audio_path = "output.mp3"
         fileName = params["FileName"]
+        projectId = params["ProjectId"]
         
         # Generate the script and TTS audio
         if(fileName is not None and fileName != ""):
+
             # Construct the endpoint URI
             file_url = f"https://congen-api.ofneill.com/storage/get-file?fileName={fileName}"
             headers = {
@@ -47,14 +52,18 @@ async def generate(params):
 
             # Read the stream and decode as text
             script = response.content.decode('utf-8')
-            output_audio_path = tts.tts(script, params["Tone"])
+            output_audio_path = await tts.tts(script, instructions=params["Tone"])
         else:
+            print(f">> GENERATING_SCRIPT :: {projectId} ")
             script = await scriptgen(params["Prompt"], params["Tone"])
             if "error" in script:
                 raise Exception(script["error"])
-            output_audio_path = tts.tts(script.content, params["Tone"])
-             
-        subtitle = transcribe(output_audio_path)
+            
+            print(f">> GENERATING_TTS :: {projectId} ")
+            output_audio_path = await tts.tts(script.content, instructions=params["Tone"])
+            
+        print(f">> TRANSCRIBING_TTS :: {projectId} ")
+        output_subtitle_path = await transcribe(output_audio_path)
 
         # print("Script:", script, subtitle)
 
@@ -64,35 +73,70 @@ async def generate(params):
             # "Content-Type": "multipart/form-data"
         }
 
-        audioRes = ""
-        subRes = ""
 
-        # Stream the file
-        with open(output_audio_path, 'rb') as f:
-            audioRes = requests.post(f"{API_URL}/storage/save-file", headers=headers, files={"file": f}, verify=VERIFY)
+        connector = aiohttp.TCPConnector(ssl=VERIFY)
+        async with aiohttp.ClientSession(headers=headers, connector=connector) as session:
+            
+            tts_form_data = aiohttp.FormData()
 
-        with open(subtitle, 'rb') as f:
-            subRes = requests.post(f"{API_URL}/storage/save-file", headers=headers, files={"file": f}, verify=VERIFY)
-        
+            print(f">> READING_FILE :: {projectId} :: {output_audio_path} ")
+            async with aiofiles.open(output_audio_path, 'rb') as audio_file:
+                audio_data = await audio_file.read()
+                tts_form_data.add_field(
+                    name="file",
+                    value=audio_data,
+                    filename=output_audio_path.split("/")[-1],
+                    content_type="application/octet-stream"
+                )
+            print(f">> READING_FILE_COMPLETE :: {projectId} :: {output_audio_path} ")            
+            
+            print(f">> SENDING_FILE :: {projectId} :: {output_audio_path} ")
+            async with session.post(f"{API_URL}/storage/save-file", data=tts_form_data) as audio_response:
+                audio_res = await audio_response.json()
+            print(f">> SENDING_FILE_COMPLETE :: {projectId} :: {audio_res}")
 
-        # Prepare the request body
-        project_res_body = {
-            "id" : params["ProjectId"],
-            "ttsUrl" : audioRes.json()["fileName"],
-            "captionsUrl" : subRes.json()["fileName"],
-            "successful" : True
-        }   
+            srt_form_data = aiohttp.FormData()
+
+            print(f">> READING_FILE :: {projectId} :: {output_audio_path} ")
+            async with aiofiles.open(output_subtitle_path, 'rb') as subtitle_file:
+                sub_data = await subtitle_file.read()
+                srt_form_data.add_field(
+                    name="file",
+                    value=sub_data,
+                    filename=output_subtitle_path.split("/")[-1],
+                    content_type="application/octet-stream"
+            )
+            print(f">> READING_FILE_COMPLETE :: {projectId} :: {output_audio_path} ")
+           
+            print(f">> SENDING_FILE :: {output_subtitle_path} ")
+            async with session.post(f"{API_URL}/storage/save-file", data=srt_form_data) as subtitle_response:
+                sub_res = await subtitle_response.json()
+            print(f">> SENDING_FILE_COMPLETE :: {projectId} :: {sub_res} ")
+
+            # Prepare the request body
+            project_res_body = {
+                "id" : projectId,
+                "ttsUrl" : audio_res["fileName"],
+                "captionsUrl" : sub_res["fileName"],
+                "successful" : True
+            }
 
 
-        # change to prod url when deployed
-        url = f"http://localhost:5032/project/update-project"
-        # url = f"{API_URL}/project/update-project"
-        
-        project_response = requests.put(url, headers=headers, json=project_res_body)
+            # change to prod url when deployed
+            url = f"http://localhost:5032/project/update-project"
+            # url = f"{API_URL}/project/update-project"
+            
+            print(f">> SAVING_PROJECT :: {projectId}")
+            async with session.put(url, json=project_res_body) as response:
+                update_project_response = await response.json()
+            print(f">> SAVING_PROJECT_COMPLETE :: {projectId} :: {update_project_response} ")
+
+            delete_file(output_audio_path)
+            delete_file(output_subtitle_path)
 
         # Return the response
         return {
-            "response" : project_response,
+            "response" : update_project_response,
         }
         
 
@@ -100,5 +144,5 @@ async def generate(params):
         print(e)
         return {
             "message" : e,
-            "error"   : e
+            "error"   : "Error occured when generating"
         }

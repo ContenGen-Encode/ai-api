@@ -1,19 +1,18 @@
 import asyncio
 import os
-import pika
 import caller
 import json
-import threading
-import sys
 import aio_pika
 from dotenv import load_dotenv
+
 load_dotenv()
+
 # Connection parameters
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
 QUEUE_NAME = os.getenv("RABBITMQ_QUEUE")
 EXCHANGE_NAME = os.getenv("RABBITMQ_EXCHANGE")
 
-async def callback(ch, message):
+async def callback(exchange, message):
     async with message.process():
         userId = ""
         try: 
@@ -22,7 +21,7 @@ async def callback(ch, message):
 
             
             userId = json.loads(jsonObj)["UserId"]
-            #[audioRes, subRes] = caller.generate(jsonObj)
+
             res =  await caller.generate(jsonObj)
             
             # Publish message to the exchange
@@ -32,26 +31,26 @@ async def callback(ch, message):
                     "message": str(res["message"])
                 }
                 
-                await publishMessage(ch, bytes(json.dumps(message), encoding="utf8"), userId)
+                await publishMessage(exchange, message, userId)
 
             else:
-                res_dict = json.loads(res["response"].text)
+                res_dict = res["response"]
                 message = {
                     "id": res_dict["projectId"],    
                 }
 
-                await publishMessage(ch, bytes(json.dumps(message), encoding="utf8"), userId)
+                await publishMessage(exchange, message, userId)
         except Exception as e:
             print(e)
-            await publishMessage(ch, bytes(json.dumps({
+            await publishMessage(exchange, {
                 "error": "something wong",
                 "message": "this is unexpected"
-            }), encoding="utf8"), userId)
+            }, userId)
 
 
 
 async def main(loop):
-    # Connect to RabbitMQ servera
+    # Connect to RabbitMQ server
     user = os.getenv("RABBITMQ_USER")
     pwd = os.getenv("RABBITMQ_PASS") 
     connectionString = f"amqp://{user}:{pwd}@{RABBITMQ_HOST}/"
@@ -67,21 +66,20 @@ async def main(loop):
         print(f"[*] Waiting for messages in {QUEUE_NAME}...") 
         async with queue.iterator() as queue_iter:
             async for message in queue_iter:
-                asyncio.create_task(callback(channel, message))
+                asyncio.create_task(callback(exchange, message))
 
         
     print("[*] Stopping consumption...")
 
 
-async def publishMessage(ch: aio_pika.abc.AbstractChannel, body, userId):
+async def publishMessage(exchange: aio_pika.abc.AbstractExchange, body, userId):
     # Publish a message to the exchange
 
-    await ch.default_exchange.publish(
+    await exchange.publish(
         routing_key  = userId,
         message      = aio_pika.Message(
-            body=body
+            body=json.dumps(body).encode()
         ),
-        # properties   = pika.BasicProperties(delivery_mode = 2,)
     )
 
     print(f" [x] Sent '{body}'")
