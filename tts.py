@@ -1,72 +1,65 @@
 import os
-from openai import AzureOpenAI
+from openai import AsyncAzureOpenAI
 import dotenv
+import aiofiles
+from utils.file_lib import generate_unique_filename
+
 
 # Load environment variables from .env file
 dotenv.load_dotenv()
 
 # Get API key from environment variable
-def tts(prompt,tone):
+TTS_API_KEY = os.getenv("TTS_API_KEY")
+AZURE_ENDPOINT_TTS = os.getenv("AZURE_ENDPOINT_TTS")
+
+async def tts(prompt: str, voice: str = "alloy", instructions: str = None):
     """
     Converts a given text prompt into speech, saves it as an audio file, 
     and returns the path to the saved file.
 
     Args:
         prompt (str): The text input to be converted into speech.
-
+        voice (str): The voice to use for speech synthesis.
+        instructions (str): Additional instructions that can change Accent, Emotional range, Intonation, Impressions, Speed of speechTone, Whispering.
     Returns:
         str: The file path to the saved audio output.
     """
 
-    key = os.getenv("TTS_API_KEY")
-    clientTTS = AzureOpenAI(
+    TTS_API_KEY = os.getenv("TTS_API_KEY")
+    AZURE_ENDPOINT_TTS = os.getenv("AZURE_ENDPOINT_TTS")
+    clientTTS = AsyncAzureOpenAI(
         api_version="2024-12-01-preview",
-        azure_endpoint="https://sebi-m9edwlj5-northcentralus.cognitiveservices.azure.com/",
-        api_key=key,
+        azure_endpoint=AZURE_ENDPOINT_TTS,
+        api_key=TTS_API_KEY,
+        
     )
 
     output_audio_path = "output.mp3"
-    response = clientTTS.audio.speech.create(
+
+    response = await clientTTS.audio.speech.create(
         model = "tts-hd",
-        voice = "alloy",
-        input = prompt
+        voice = voice,
+        input = prompt,
+        instructions = instructions,
     )
 
-    response.write_to_file(output_audio_path)
-    
-    print(f"Audio saved to: {output_audio_path}")
-    clientTTS.close()
-    
-    return output_audio_path
+    if hasattr(response, 'read') and callable(response.aread):
+        audio_data = await response.aread()
+    else:
+        audio_data = response.content 
+
+    output_file_name = generate_unique_filename()
+    output_dir = os.getenv("FILE_DIR")
+    path_to_file = f"{output_dir}/{output_file_name}"
 
 
-def transcribe(output_audio_path):
-    """
-    Transcribe an audio file using the Whisper model from OpenAI.
+    async with aiofiles.open(path_to_file, 'wb') as f:
+        await f.write(audio_data)
 
-    Given a path to an audio file, this function will transcribe it using the Whisper model
-    from OpenAI and save the transcription to a file named "subtitles.srt" in the same
-    directory.
+    print(f"Audio saved to: {output_file_name}")
+    await clientTTS.close()
 
-    Args:
-        output_audio_path: str, the path to the audio file to transcribe
-    """
-    key = os.getenv("OPENAI_API_KEY")
+    return path_to_file
 
-    clientSUB = AzureOpenAI(
-        api_version="2024-12-01-preview",
-        azure_endpoint="https://ai-sebimomir-3123.cognitiveservices.azure.com/",
-        api_key=key,
-    )
 
-    result = clientSUB.audio.transcriptions.create(
 
-        file=open(output_audio_path, "rb"),            
-        model="whisper",
-        response_format="srt"
-    )
-
-    with open("subtitles.srt", 'w', encoding='utf-8') as f:
-        f.write(result)
-    
-    return "subtitles.srt"
