@@ -6,20 +6,21 @@ import dotenv
 dotenv.load_dotenv()
 
 # Get API key from environment variable
-async def tts(prompt,tone):
+TTS_API_KEY = os.getenv("TTS_API_KEY")
+AZURE_ENDPOINT_TTS = os.getenv("AZURE_ENDPOINT_TTS")
+
+async def tts(prompt: str, voice: str = "alloy", instructions: str = None):
     """
     Converts a given text prompt into speech, saves it as an audio file, 
     and returns the path to the saved file.
 
     Args:
         prompt (str): The text input to be converted into speech.
-
+        voice (str): The voice to use for speech synthesis.
     Returns:
         str: The file path to the saved audio output.
     """
 
-    TTS_API_KEY = os.getenv("TTS_API_KEY")
-    AZURE_ENDPOINT_TTS = os.getenv("AZURE_ENDPOINT_TTS")
     clientTTS = await AsyncAzureOpenAI(
         api_version="2024-12-01-preview",
         azure_endpoint=AZURE_ENDPOINT_TTS,
@@ -28,10 +29,12 @@ async def tts(prompt,tone):
     )
 
     output_audio_path = "output.mp3"
+
     response = await clientTTS.audio.speech.create(
         model = "tts-hd",
-        voice = "alloy",
-        input = prompt
+        voice = voice,
+        input = prompt,
+        instructions = instructions,
     )
 
     response.write_to_file(output_audio_path)
