@@ -17,6 +17,7 @@ async def tts(prompt: str, voice: str = "alloy", instructions: str = None):
     Args:
         prompt (str): The text input to be converted into speech.
         voice (str): The voice to use for speech synthesis.
+        instructions (str): Additional instructions that can change Accent, Emotional range, Intonation, Impressions, Speed of speechTone, Whispering.
     Returns:
         str: The file path to the saved audio output.
     """
