@@ -24,7 +24,7 @@ async def tts(prompt: str, voice: str = "alloy", instructions: str = None):
     Returns:
         str: The file path to the saved audio output.
     """
-
+    
     TTS_API_KEY = os.getenv("TTS_API_KEY")
     AZURE_ENDPOINT_TTS = os.getenv("AZURE_ENDPOINT_TTS")
     clientTTS = AsyncAzureOpenAI(
