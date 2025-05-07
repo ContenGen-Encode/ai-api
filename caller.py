@@ -123,8 +123,8 @@ async def generate(params):
 
 
             # change to prod url when deployed
-            url = f"http://localhost:5032/project/update-project"
-            # url = f"{API_URL}/project/update-project"
+            # url = f"http://localhost:5032/project/update-project"
+            url = f"{API_URL}/project/update-project"
             
             print(f">> SAVING_PROJECT :: {projectId}")
             async with session.put(url, json=project_res_body) as response:
