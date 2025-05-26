@@ -1,4 +1,5 @@
 # import fastapi
+from builtins import WindowsError
 import os
 import aiofiles
 from dotenv import load_dotenv
@@ -120,9 +121,6 @@ async def generate(params):
                 "successful" : True
             }
 
-
-            # change to prod url when deployed
-            # url = f"http://localhost:5032/project/update-project"
             url = f"{API_URL}/project/update-project"
             
             print(f">> SAVING_PROJECT :: {projectId}")
@@ -130,13 +128,24 @@ async def generate(params):
                 update_project_response = await response.json()
             print(f">> SAVING_PROJECT_COMPLETE :: {projectId} :: {update_project_response} ")
 
+        del audio_file, subtitle_file  # explicitly remove reference
+        import gc; gc.collect()
+        
+        
+        try:
             delete_file(output_audio_path)
+        except WindowsError:
+           print(f">> ERROR_DELETING_FILE :: {output_audio_path}")
+           
+        try:
             delete_file(output_subtitle_path)
-
-        # Return the response
+        except WindowsError:
+           print(f">> ERROR_DELETING_FILE :: {output_subtitle_path}")
+           
         return {
             "response" : update_project_response,
         }
+
         
 
     except Exception as e:
