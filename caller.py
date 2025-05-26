@@ -1,5 +1,4 @@
 # import fastapi
-import json
 import os
 import aiofiles
 from dotenv import load_dotenv
@@ -12,7 +11,7 @@ import aiohttp
 from utils.file_lib import delete_file
 #from api.script import generate_system_prompt
  
-load_dotenv()
+load_dotenv(override=True)
 
 # class Model(BaseModel)
 
@@ -28,11 +27,11 @@ async def generate(params):
         VERIFY = API_URL.__contains__("https://localhost:")
         VERIFY = False if VERIFY else True
 
-        params = json.loads(params)
         token = params["AccessToken"]
         output_audio_path = "output.mp3"
         fileName = params["FileName"]
         projectId = params["ProjectId"]
+        print(params)
         
         # Generate the script and TTS audio
         if(fileName is not None and fileName != ""):
@@ -74,7 +73,7 @@ async def generate(params):
         }
 
 
-        connector = aiohttp.TCPConnector(ssl=VERIFY)
+        connector = aiohttp.TCPConnector(verify_ssl=VERIFY)
         async with aiohttp.ClientSession(headers=headers, connector=connector) as session:
             
             tts_form_data = aiohttp.FormData()
@@ -141,7 +140,7 @@ async def generate(params):
         
 
     except Exception as e:
-        print(e)
+        print(f">> ERROR :: {e}")
         return {
             "message" : e,
             "error"   : "Error occured when generating"

@@ -3,24 +3,29 @@ import os
 import caller
 import json
 import aio_pika
+from aio_pika.message import AbstractIncomingMessage
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Connection parameters
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST")
 QUEUE_NAME = os.getenv("RABBITMQ_QUEUE")
 EXCHANGE_NAME = os.getenv("RABBITMQ_EXCHANGE")
 
-async def callback(exchange, message):
+async def callback(exchange, message: AbstractIncomingMessage):
     async with message.process():
         userId = ""
         try: 
-            jsonObj = json.loads(message.body)
-            print(f"\n\nReceived message: {json.loads(jsonObj)['ProjectId']}")
+            jsonStr = json.loads(message.body)
+            jsonObj = json.loads(jsonStr)
+            print(jsonObj)
+            print(f"\n\nReceived message: {jsonObj['ProjectId']}")
 
             
-            userId = json.loads(jsonObj)["UserId"]
+            userId = jsonObj["UserId"]
+
+            print(f"UserId: {userId}")
 
             res =  await caller.generate(jsonObj)
             

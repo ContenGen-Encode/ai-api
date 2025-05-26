@@ -5,12 +5,13 @@ from openai import OpenAIError, AsyncAzureOpenAI
 from dotenv import load_dotenv
 
 from utils.file_lib import generate_unique_filename
-load_dotenv()
+load_dotenv(override=True)
 import os 
 
-# os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-# os.environ["AZURE_OPENAI_ENDPOINT"] = "https://ai-sebimomir-3123.cognitiveservices.azure.com/"
+
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+WHISPER_API_KEY = os.getenv("WHISPER_API_KEY")
+AZURE_ENDPOINT_WHISPER = os.getenv("AZURE_ENDPOINT_WHISPER")
 AZURE_ENDPOINT_GPT = os.getenv("AZURE_ENDPOINT_GPT")
 
 async def scriptgen(prompt, tone):
@@ -27,7 +28,7 @@ async def scriptgen(prompt, tone):
               or an error message and the error code
     """
     llm = AzureChatOpenAI(
-    azure_deployment="gpt-4o",  # or your deployment
+    azure_deployment="gpt-4o-mini",  # or your deployment
     api_version = "2024-12-01-preview",
     azure_endpoint=AZURE_ENDPOINT_GPT,
     api_key=OPENAI_API_KEY,
@@ -44,15 +45,16 @@ async def scriptgen(prompt, tone):
 
     prompt_template = PromptTemplate(template=template)
 
-    prompt = await prompt_template.ainvoke({
-        "input":prompt, 
-        "tone":tone
-                                    })
 
     #chain = prompt | llm | 
    
     try:
-        return await llm.ainvoke(prompt)
+        prompt = await prompt_template.ainvoke({
+            "input":prompt, 
+            "tone":tone
+        })
+        res = await llm.ainvoke(prompt)
+        return res
     except OpenAIError as ai_err:
         ai_response_msg = ai_err.body["message"]
         return {"message": ai_response_msg,
@@ -74,8 +76,8 @@ async def transcribe(output_audio_path):
 
     clientSUB: AsyncAzureOpenAI = AsyncAzureOpenAI(
         api_version="2024-12-01-preview",
-        azure_endpoint=AZURE_ENDPOINT_GPT,
-        api_key=OPENAI_API_KEY,
+        azure_endpoint=AZURE_ENDPOINT_WHISPER,
+        api_key=WHISPER_API_KEY,
     )
 
 
